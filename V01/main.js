@@ -37,43 +37,12 @@
 // dom.append(textNode);
 // ---------- v3 ---------
 
-function createTextNode(text) {
-  return {
-    type: "TEXT_ELEMENT",
-    props: {
-      nodeValue: text,
-      children: [],
-    },
-  };
-}
+// const textEl = createTextNode("app");
+// const App = createElement("div", { id: "app" }, "app", "123123");
 
-function createElement(type, props, ...children) {
-  return {
-    type: type,
-    props: {
-      ...props,
-      children: children.map((child) =>
-        typeof child === "string" ? createTextNode(child) : child
-      ),
-    },
-  };
-}
+// render(App, document.querySelector("#root"));
 
-function render(el, container) {
-  const dom =
-    el.type === "TEXT_ELEMENT"
-      ? document.createTextNode("")
-      : document.createElement(el.type);
-  Object.keys(el.props).forEach((key) => {
-    if (key !== "children") {
-      dom[key] = el.props[key];
-    }
-  });
-  const children = el.props.children;
-  children.forEach((child) => render(child, dom));
-  container.append(dom);
-}
-const textEl = createTextNode("app");
-const App = createElement("div", { id: "app" }, "app", "123123");
-
-render(App, document.querySelector("#root"));
+// ----  v4  ----
+import ReactDOM from "./core/ReactDOM.js";
+import App from "./App.js";
+ReactDOM.createRoot(document.querySelector("#root")).render(App);
