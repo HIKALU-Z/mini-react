@@ -43,6 +43,6 @@
 // render(App, document.querySelector("#root"));
 
 // ----  v4  ----
-import ReactDOM from "./core/ReactDOM.js";
+import ReactDOM from "./vite-jsx/core/ReactDOM.js";
 import App from "./App.js";
 ReactDOM.createRoot(document.querySelector("#root")).render(App);
