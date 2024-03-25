@@ -13,9 +13,11 @@ function createElement(type, props, ...children) {
     type: type,
     props: {
       ...props,
-      children: children.map((child) =>
-        typeof child === "string" ? createTextNode(child) : child
-      ),
+      children: children.map((child) => {
+        const isTextNode =
+          typeof child === "string" || typeof child === "number";
+        return isTextNode ? createTextNode(child) : child;
+      }), 
     },
   };
 }
@@ -69,22 +71,26 @@ function workLoop(deadline) {
   // 确保当前指针是最后一个指针，并且 root 不为空;
   if (!nextUnitOfWork && root) {
     commitRoot();
+    root = null;
   }
   requestIdleCallback(workLoop);
 }
 
 function commitRoot() {
   // Implement
-  console.log("123:", 123);
-
   commitWork(root.child);
-  root = null;
 }
 
 function commitWork(fiber) {
   // Implement
   if (!fiber) return;
-  fiber.parent.dom.append(fiber.dom);
+  let fiberParent = fiber.parent;
+  while (!fiberParent.dom) {
+    fiberParent = fiberParent.parent;
+  }
+  if (fiber.dom) {
+    fiberParent.dom.append(fiber.dom);
+  }
   commitWork(fiber.child);
   commitWork(fiber.sibling);
 }
@@ -93,6 +99,8 @@ function performUnitOfWork(fiber) {
   if (!fiber.dom) {
     // 1. 创建 dom
     const dom = (fiber.dom = createDom(fiber.type));
+    console.log("dom:", dom);
+
     // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
     //   fiber.parent.dom.append(dom);
 
@@ -109,14 +117,14 @@ function performUnitOfWork(fiber) {
   if (fiber.sibling) {
     return fiber.sibling;
   }
-  return fiber.parent?.sibling;
-  // let nextFiber = fiber;
-  // while (nextFiber) {
-  //   if (nextFiber.sibling) {
-  //     return nextFiber.sibling;
-  //   }
-  //   nextFiber = nextFiber.parent;
-  // }
+  // return fiber.parent?.sibling;
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibling) {
+      return nextFiber.sibling;
+    }
+    nextFiber = nextFiber.parent;
+  }
 }
 /**
  * render方法默认调用的时候采用fiber的形式，将根节点当做第一个 work fiber
@@ -127,6 +135,7 @@ function performUnitOfWork(fiber) {
 function render(el, container) {
   nextUnitOfWork = {
     dom: container,
+    // type: "div",
     props: {
       children: [el],
     },
