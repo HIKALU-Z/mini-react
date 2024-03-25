@@ -55,23 +55,46 @@ function initChildren(fiber) {
   });
 }
 
+let root = null;
 let nextUnitOfWork = null;
+
 function workLoop(deadline) {
   let shouldYield = false;
+  // console.log("root:", root);
+
   while (!shouldYield && nextUnitOfWork) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     shouldYield = deadline.timeRemaining() < 1;
   }
+  // 确保当前指针是最后一个指针，并且 root 不为空;
+  if (!nextUnitOfWork && root) {
+    commitRoot();
+  }
   requestIdleCallback(workLoop);
+}
+
+function commitRoot() {
+  // Implement
+  console.log("123:", 123);
+
+  commitWork(root.child);
+  root = null;
+}
+
+function commitWork(fiber) {
+  // Implement
+  if (!fiber) return;
+  fiber.parent.dom.append(fiber.dom);
+  commitWork(fiber.child);
+  commitWork(fiber.sibling);
 }
 
 function performUnitOfWork(fiber) {
   if (!fiber.dom) {
     // 1. 创建 dom
     const dom = (fiber.dom = createDom(fiber.type));
-    console.log("dom:", dom);
-
-    fiber.parent.dom.append(dom);
+    // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
+    //   fiber.parent.dom.append(dom);
 
     // 2. 处理 props
     updateProps(dom, fiber.props);
@@ -98,18 +121,18 @@ function performUnitOfWork(fiber) {
 /**
  * render方法默认调用的时候采用fiber的形式，将根节点当做第一个 work fiber
  * @param {*} el
- * @param {*} root
+ * @param {*} container
  */
 
-function render(el, root) {
-  // console.log(el);
+function render(el, container) {
   nextUnitOfWork = {
-    dom: root,
+    dom: container,
     props: {
       children: [el],
     },
   };
-  console.log("nextUnitOfWork", nextUnitOfWork);
+  // 第一次初始化的时候 需要在最后挂载的根节点就是一开始传进来的这个 unit
+  root = nextUnitOfWork;
   requestIdleCallback(workLoop);
 }
 
