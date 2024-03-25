@@ -21,7 +21,7 @@ function createElement(type, props, ...children) {
 }
 
 function createDom(type) {
-  return type === "TEXT_NODE"
+  return type === "TEXT_ELEMENT"
     ? document.createTextNode("")
     : document.createElement(type);
 }
@@ -69,6 +69,8 @@ function performUnitOfWork(fiber) {
   if (!fiber.dom) {
     // 1. 创建 dom
     const dom = (fiber.dom = createDom(fiber.type));
+    console.log("dom:", dom);
+
     fiber.parent.dom.append(dom);
 
     // 2. 处理 props
@@ -81,13 +83,17 @@ function performUnitOfWork(fiber) {
   if (fiber.child) {
     return fiber.child;
   }
-  let nextFiber = fiber;
-  while (nextFiber) {
-    if (nextFiber.sibling) {
-      return nextFiber.sibling;
-    }
-    nextFiber = nextFiber.parent;
+  if (fiber.sibling) {
+    return fiber.sibling;
   }
+  return fiber.parent?.sibling;
+  // let nextFiber = fiber;
+  // while (nextFiber) {
+  //   if (nextFiber.sibling) {
+  //     return nextFiber.sibling;
+  //   }
+  //   nextFiber = nextFiber.parent;
+  // }
 }
 /**
  * render方法默认调用的时候采用fiber的形式，将根节点当做第一个 work fiber
@@ -96,14 +102,14 @@ function performUnitOfWork(fiber) {
  */
 
 function render(el, root) {
-  console.log(el);
+  // console.log(el);
   nextUnitOfWork = {
     dom: root,
     props: {
       children: [el],
     },
   };
-  console.log(nextUnitOfWork);
+  console.log("nextUnitOfWork", nextUnitOfWork);
   requestIdleCallback(workLoop);
 }
 
