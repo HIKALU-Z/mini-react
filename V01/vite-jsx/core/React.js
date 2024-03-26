@@ -17,7 +17,7 @@ function createElement(type, props, ...children) {
         const isTextNode =
           typeof child === "string" || typeof child === "number";
         return isTextNode ? createTextNode(child) : child;
-      }), 
+      }),
     },
   };
 }
@@ -36,8 +36,8 @@ function updateProps(dom, props) {
   });
 }
 
-function initChildren(fiber) {
-  const children = fiber.props.children;
+function initChildren(fiber, children) {
+  // const children = fiber.props.children;
   let prevChild = null;
   children.forEach((child, index) => {
     const newFiber = {
@@ -79,6 +79,7 @@ function workLoop(deadline) {
 function commitRoot() {
   // Implement
   commitWork(root.child);
+  // root = null;
 }
 
 function commitWork(fiber) {
@@ -89,26 +90,34 @@ function commitWork(fiber) {
     fiberParent = fiberParent.parent;
   }
   if (fiber.dom) {
-    fiberParent.dom.append(fiber.dom);
+    fiberParent.dom?.append(fiber.dom);
   }
   commitWork(fiber.child);
   commitWork(fiber.sibling);
 }
 
 function performUnitOfWork(fiber) {
-  if (!fiber.dom) {
-    // 1. 创建 dom
-    const dom = (fiber.dom = createDom(fiber.type));
-    console.log("dom:", dom);
+  const isFunctionComponent = typeof fiber.type === "function";
+  if (!isFunctionComponent) {
+    if (!fiber.dom) {
+      // 1. 创建 dom
+      const dom = (fiber.dom = createDom(fiber.type));
+      console.log("dom:", dom);
 
-    // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
-    //   fiber.parent.dom.append(dom);
+      // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
+      //   fiber.parent.dom.append(dom);
 
-    // 2. 处理 props
-    updateProps(dom, fiber.props);
+      // 2. 处理 props
+      updateProps(dom, fiber.props);
+    }
   }
+  const children = isFunctionComponent
+    ? [fiber.type(fiber.props)]
+    : fiber.props.children;
+  console.log("children:", children);
+
   // 3.转换链表，处理好指针
-  initChildren(fiber);
+  initChildren(fiber, children);
 
   // 4.返回下一个要执行的任务
   if (fiber.child) {
