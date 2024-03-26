@@ -62,7 +62,6 @@ let nextUnitOfWork = null;
 
 function workLoop(deadline) {
   let shouldYield = false;
-  // console.log("root:", root);
 
   while (!shouldYield && nextUnitOfWork) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
@@ -102,7 +101,7 @@ function performUnitOfWork(fiber) {
     if (!fiber.dom) {
       // 1. 创建 dom
       const dom = (fiber.dom = createDom(fiber.type));
-      console.log("dom:", dom);
+      // console.log("dom:", dom);
 
       // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
       //   fiber.parent.dom.append(dom);
@@ -114,7 +113,6 @@ function performUnitOfWork(fiber) {
   const children = isFunctionComponent
     ? [fiber.type(fiber.props)]
     : fiber.props.children;
-  console.log("children:", children);
 
   // 3.转换链表，处理好指针
   initChildren(fiber, children);
