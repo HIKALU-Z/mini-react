@@ -95,28 +95,33 @@ function commitWork(fiber) {
   commitWork(fiber.sibling);
 }
 
-function performUnitOfWork(fiber) {
-  const isFunctionComponent = typeof fiber.type === "function";
-  if (!isFunctionComponent) {
-    if (!fiber.dom) {
-      // 1. 创建 dom
-      const dom = (fiber.dom = createDom(fiber.type));
-      // console.log("dom:", dom);
-
-      // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
-      //   fiber.parent.dom.append(dom);
-
-      // 2. 处理 props
-      updateProps(dom, fiber.props);
-    }
-  }
-  const children = isFunctionComponent
-    ? [fiber.type(fiber.props)]
-    : fiber.props.children;
-
+function updateFunctionComponent(fiber) {
+  const children = [fiber.type(fiber.props)];
   // 3.转换链表，处理好指针
   initChildren(fiber, children);
+}
 
+function updateHostComponent(fiber) {
+  if (!fiber.dom) {
+    // 1. 创建 dom
+    const dom = (fiber.dom = createDom(fiber.type));
+    // 之所以注释这里。是应为最后统一使用 commiRoot 来进行 dom 的挂载
+    //   fiber.parent.dom.append(dom);
+    // 2. 处理 props
+    updateProps(dom, fiber.props);
+  }
+  const children = fiber.props.children;
+  // 3.转换链表，处理好指针
+  initChildren(fiber, children);
+}
+
+function performUnitOfWork(fiber) {
+  const isFunctionComponent = typeof fiber.type === "function";
+  if (isFunctionComponent) {
+    updateFunctionComponent(fiber);
+  } else {
+    updateHostComponent(fiber);
+  }
   // 4.返回下一个要执行的任务
   if (fiber.child) {
     return fiber.child;
